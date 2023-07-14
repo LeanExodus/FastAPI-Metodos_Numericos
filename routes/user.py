@@ -83,7 +83,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 #Registrar Usuario
 @user.post("/users", response_model=User, tags=["users"])
-def create_user(user: User, token: Annotated[str, Depends(oauth2_schema)]):
+def create_user(user: User):
     #Hacemos diccionario a nuestro usuario
     new_user = user.dict()
     #Encriptamos la contraseña del usuario y se lo pasamos al diccionario
