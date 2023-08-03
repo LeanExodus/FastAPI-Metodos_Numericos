@@ -6,7 +6,6 @@ from utils.utils import t_func, t_interval
 from utils.parsedFunc import get_parsed_func
 from utils.errorCalc import error_calculation
 from sympy import *
-import numpy as np
 
 
 #Funcion de secante | Aqui se usa la funcion lambda enviando el valor de xa o xb segun corresponda con la formula
@@ -52,6 +51,6 @@ def secant_method(func: str, xa: str, xb: str, tol: str):
         previous_result = current_result
         iteration += 1
 
-        list_secantOutput.append(SecantOutput(iteration=str(iteration), result=str(current_result), error=str(np.format_float_positional(current_error,trim='-'))))
+        list_secantOutput.append(SecantOutput(iteration=str(iteration), result=str(current_result), error=str(current_error)))
         
     return list_secantOutput
