@@ -11,7 +11,9 @@ newton = APIRouter()
 @newton.post("/newton",response_model=list[NewtonOutput] , tags=["Newton"])
 def newton_calculator(newton_input: NewtonInput, token: Annotated[str, Depends(oauth2_schema)]):
     func = newton_input.func
-    x = (newton_input.x)
+    x = newton_input.x
+    xa= newton_input.xa
+    xb = newton_input.xb
     tol = (newton_input.tolerance)
 
-    return newton_method(func,x,tol)
+    return newton_method(func,x,xa,xb,tol)

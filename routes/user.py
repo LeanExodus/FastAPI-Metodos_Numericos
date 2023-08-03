@@ -51,7 +51,7 @@ def create_token(data: dict, time_expire: Union[datetime,None] = None):
     token_jwt = jwt.encode(data_copy, key = SECRET_KEY, algorithm= ALGORITHM)
     return token_jwt
 
-#Verifica que el usuario logueado sea el mismo de jwt token
+#Verifica que el usuario logueado sea el mismo del jwt token
 def get_current_user(token: str = Depends(oauth2_schema)):
     try:
         token_decode = jwt.decode(token, key= SECRET_KEY, algorithms=[ALGORITHM])
@@ -122,9 +122,3 @@ def update_user(id: str, user: User, token: Annotated[str, Depends(oauth2_schema
    #Devolvemos el usuario agregado mediante otra transaccion y en forma de diccionario
     return  conn.execute(users.select().where(users.c.id == id)).first()._mapping
 
-"""@user.get("/users/{id}", response_model=User, tags=["users"])
-def get_user_route(id: str, token: Annotated[str, Depends(oauth2_schema)]):
-     
-
-     #Devolvemos el usuario buscado en forma de diccionario
-     return conn.execute(users.select().where(users.c.id == id)).first()._mapping"""

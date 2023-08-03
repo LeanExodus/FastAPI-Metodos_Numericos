@@ -1,71 +1,66 @@
+from fastapi import HTTPException, status
+from math import e, pi, cos, sin, tan, sqrt, log, atan
 from schemas.newton import NewtonOutput
-from utils.utils import t_func, t_interval
-from math import e, pi, cos, sin, tan, sqrt
-#Sympy se usa para obtener la derivada de la funcion
+from utils.continuity import test_continuity
+from utils.utils import t_func, t_interval, t_derivate_func, middle_point
+from utils.bolzano import bolzano_ver, bolzano_calc
+from utils.parsedFunc import get_parsed_func
+from utils.errorCalc import error_calculation
+from utils.derivedFunc import get_derived_func, get_lamb_derived_func
 from sympy import *
+import numpy as np
 
-
-#Nos permite tranformar la funcion ingresada en una funcion valida para remplazar x
-#Eval() nos permite evaluar una funcion ingresada (str) y devolver su valor
-#Lambda nos permite transformar la funcion evaluda en una ecuacion valida para remplazar x
-def get_parsed_func(function: str):
-        return lambda x: eval(function)
-
-#Calcula la derivada de la funcion y la transforma en una ecuacion valida para remplazar x
-def get_derived_func(function: str):
-    x = symbols('x')
-    derived_func = diff(function,x)
-    return lambdify(x,derived_func)
 
 #Funcion de newton raphson | Aqui se usan las funciones lambda enviando el valor de x para ser evaluado en las respectivas funciones
 def newton_calculation(x, func, derived_func):
-  return x-(func(x)/derived_func(x))
+  try:
+    result = x-(func(x)/derived_func(x))
+  except:
+      raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Error al realizar el calculo de la iteracion")
+  return result
 
-#Calcula el error en cada iteracion
-def error_calculation(current, previous) -> float:
-  return abs(((current - previous) / current) * 100)
 
-def newton_method(func: str, x: str, tol: str):
+def newton_method(func: str, x: str, xa: str, xb: str, tol: str):
     func = t_func(func)
-    
-    try:
-        derived_func = get_derived_func(func)
-    except Exception as error:
-        print("Ingresa una funcion valida:", error)
-
-    try:
-        func = get_parsed_func(func)
-    except Exception as error:
-        return ("Ingresa una funcion valida:", error)
-    
-    try:
-        x = t_interval(x)
-    except Exception as error:
-        print("Ingresa un punto valido:", error)
-
+    derived_func = t_derivate_func(str(get_derived_func(func)))
+    derived_func_lamb = get_lamb_derived_func(func)
+    func = get_parsed_func(func)
+    list_newtonOutput = []
     tol = float(tol)
     current_error = 100 
     iteration = 0
     previous_result = 0
-    list_newtonOutput = []
 
-    while current_error >= tol:
-        try:
-            current_result = newton_calculation(x,func,derived_func)
-        except Exception as error:
-            print("Error al calcular newtonRaphson:", error)
-            return ("Error al calcular newtonRaphson:", error)
-
-        try:
-            current_error = error_calculation(current_result,previous_result)
-        except Exception as error:
-            print("Error al calcular el error %:", error)
-
-        x = current_result
+    if xa == '' and xb == '' and x=='':
+        print('puntos vacios, se calcula con bolzano el intevalo y se calcula punto medio')
+        interval = bolzano_calc(func)
+        x = middle_point(interval[0],interval[1])
+       
+    elif len(xa) > 0 and len(xb) > 0 and x =='':
+        print('Hay intervalo se calcula punto medio')
+        xa = t_interval(xa)
+        xb = t_interval(xb)
+        if bolzano_ver(xa,xb,func):
+          x = middle_point(xa,xb)
+        else:
+          raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, detail="No hay una raiz en el intervalo")
         
+    elif xa=='' and xb=='' and len(x) > 0:
+        print('Hay un punto medio')
+        x = t_interval(x)
+        test_continuity(func,x)
+       
+
+    while current_error > tol and iteration < 50:
+        
+        current_result = newton_calculation(x,func,derived_func_lamb)
+        current_error = error_calculation(current_result,previous_result)
+        
+        x = current_result
+          
         previous_result = current_result
         iteration += 1
-
-        print(iteration,"|",current_result," Error=",current_error,"%")
-        list_newtonOutput.append(NewtonOutput(iteration=str(iteration), result=str(current_result), error=str(current_error)))
+          
+        list_newtonOutput.append(NewtonOutput(derivative=derived_func,iteration=str(iteration), result=str(current_result), error=str(np.format_float_positional(current_error,trim='-'))))
     return list_newtonOutput
+
