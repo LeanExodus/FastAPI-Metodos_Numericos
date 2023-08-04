@@ -9,6 +9,7 @@ from utils.errorCalc import error_calculation
 from utils.derivedFunc import get_derived_func, get_lamb_derived_func
 from sympy import *
 
+
 #Funcion de newton raphson | Aqui se usan las funciones lambda enviando el valor de x para ser evaluado en las respectivas funciones
 def newton_calculation(x, func, derived_func):
   try:
@@ -58,7 +59,6 @@ def newton_method(func: str, x: str, xa: str, xb: str, tol: str):
           
         previous_result = current_result
         iteration += 1
-          
-        list_newtonOutput.append(NewtonOutput(derivative=derived_func,iteration=str(iteration), result=str(current_result), error=str(current_error)))
+        
+        list_newtonOutput.append(NewtonOutput(derivative=derived_func,iteration=str(iteration), result=str(current_result), error=str(("%.17f" % current_error).rstrip('0').rstrip('.'))))
     return list_newtonOutput
-
